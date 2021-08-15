@@ -52,6 +52,9 @@ defmodule Either do
   @spec swap(t(l, r)) :: t(l, r) when l: var, r: var
   def swap(%Left{v: l}), do: %Right{v: l}
   def swap(%Right{v: r}), do: %Left{v: r}
+
+  @spec sample() :: t(:sample, none)
+  def sample(), do: %Left{v: :sample}
 end
 
 alias Either.{Left, Right}

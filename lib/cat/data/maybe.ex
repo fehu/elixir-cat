@@ -44,6 +44,9 @@ defmodule Maybe do
   @spec get(t(x)) :: x when x: var
   def get(%Just{val: val}), do: val
 
+  @spec sample() :: t(none)
+  def sample(), do: %Nothing{}
+
   #############################################
   ########## PROTOCOL IMPLEMENTATIONS #########
   #############################################

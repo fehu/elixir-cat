@@ -46,11 +46,8 @@ defmodule Maybe do
   defimpl Applicative, for: Maybe do
     @type t(x) :: Maybe.t(x)
 
-    @spec map(t(x), (x -> y)) :: t(y) when x: var, y: var
-    defdelegate map(tx, f), to: Functor
-
-    @spec pure(x) :: t(x) when x: var
-    def pure(x), do: Maybe.of(x)
+    @spec pure(t(any), x) :: t(x) when x: var
+    def pure(_, x), do: Maybe.of(x)
 
     @spec ap(t((x -> y)), t(x)) :: t(y) when x: var, y: var
     def ap(nil, _), do: nil
@@ -63,18 +60,6 @@ defmodule Maybe do
 
   defimpl Monad, for: Maybe do
     @type t(x) :: Maybe.t(x)
-
-    @spec map(t(x), (x -> y)) :: t(y) when x: var, y: var
-    defdelegate map(tx, f), to: Functor
-
-    @spec pure(x) :: t(x) when x: var
-    defdelegate pure(x), to: Applicative
-
-    @spec ap(t((x -> y)), t(x)) :: t(y) when x: var, y: var
-    defdelegate ap(tf, tx), to: Applicative
-
-    @spec product(t(x), t(y)) :: t({x, y}) when x: var, y: var
-    defdelegate product(tx, ty), to: Applicative
 
     @spec flat_map(t(x), (x -> t(y))) :: t(y) when x: var, y: var
     def flat_map(nil, _), do: nil

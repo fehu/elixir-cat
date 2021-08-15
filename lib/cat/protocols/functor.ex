@@ -14,6 +14,11 @@ defprotocol Functor do
   def map(tx, f)
 end
 
+defmodule Functor.Arrow do
+  @spec map((x -> y)) :: (Functor.t(x) -> Functor.t(y)) when x: var, y: var
+  def map(f), do: &Functor.map(&1, f)
+end
+
 defimpl Functor, for: List do
   @type t(x) :: [x]
 

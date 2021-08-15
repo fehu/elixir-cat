@@ -1,11 +1,14 @@
 defprotocol Applicative do
   @moduledoc """
-  Applicative is a Functor that defines
-    * `pure(x) :: t(x) when x: var`
-    * `ap(t((x -> y)), t(x)) :: t(y) when x: var, y: var`
+  Applicative defines
+    * `pure(t(any), x) :: t(x)`
+    * `ap(t((x -> y)), t(x)) :: t(y)`
+    * `product(t(x), t(y)) :: t({x, y})`
 
-  Default implementation of `product(t(x), t(y)) :: t({x, y}) when x: var, y: var`
-    can be found at `Applicative.Default`.
+  **It must also be `Functor`.**
+
+  Default implementations (at `Applicative.Default`):
+    * `product(t(x), t(y)) :: t({x, y})`
 
   Module provides implementations for:
     * `List`
@@ -13,15 +16,8 @@ defprotocol Applicative do
 
   @type t(_x) :: term
 
-  ## Functor ##
-
-  @spec map(t(x), (x -> y)) :: t(y) when x: var, y: var
-  def map(tx, f)
-
-  ## Applicative ##
-
-  @spec pure(x) :: t(x) when x: var
-  def pure(x)
+  @spec pure(t(any), x) :: t(x) when x: var
+  def pure(example, x)
 
   @spec ap(t((x -> y)), t(x)) :: t(y) when x: var, y: var
   def ap(tf, tx)
@@ -30,15 +26,12 @@ defprotocol Applicative do
   def product(tx, ty)
 end
 
-defmodule Applicative.F do
-#  @spec map((x -> y)) :: (t(x) -> t(y)) when x: var, y: var
-#  def map(f)
-#
-#  @spec pure(module()) :: t(x) when x: var
-#  def pure(m)
-#
-#  @spec ap(t((x -> y)), t(x)) :: t(y) when x: var, y: var
-#  def ap(tf, tx)
+defmodule Applicative.Arrow do
+  @spec pure(Applicative.t(any)) :: (x -> Applicative.t(x)) when x: var
+  def pure(example), do: &Applicative.pure(example, &1)
+
+  @spec ap(Applicative.t((x -> y))) :: (Applicative.t(x) -> Applicative.t(y)) when x: var, y: var
+  def ap(tf), do: &Applicative.ap(tf, &1)
 end
 
 defmodule Applicative.Default do
@@ -46,7 +39,7 @@ defmodule Applicative.Default do
 
   @spec product(Applicative.t(x), Applicative.t(y)) :: Applicative.t({x, y}) when x: var, y: var
   def product(tx, ty) do
-    fs = Applicative.map(tx, fn x -> (fn y -> {x, y} end) end)
+    fs = Functor.map(tx, fn x -> (fn y -> {x, y} end) end)
     Applicative.ap(fs, ty)
   end
 end
@@ -54,12 +47,8 @@ end
 defimpl Applicative, for: List do
   @type t(x) :: [x]
 
-  @spec map([x], (x -> y)) :: [y] when x: var, y: var
-  defdelegate map(tx, f), to: Functor
-#  def map(tx, f), do: Functor.map(tx, f)
-
-  @spec pure(x) :: [x] when x: var
-  def pure(x), do: [x]
+  @spec pure([any], x) :: [x] when x: var
+  def pure(_, x), do: [x]
 
   @spec ap([(x -> y)], [x]) :: [y] when x: var, y: var
   def ap(tf, tx), do:  _ap(tf, tx, tx, [])

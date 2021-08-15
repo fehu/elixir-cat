@@ -7,6 +7,6 @@ defprotocol Reducible do
   # @spec reduce_right(t(x), ({x, x} -> x)) :: x when x: var
   # def reduce_right(tx, f)
 
-  @spec reduce_unordered(t(x), (x, x -> x)) :: x when x: var
-  def reduce_unordered(tx, f)
+  # @spec reduce_unordered(t(x), (x, x -> x)) :: x when x: var
+  # def reduce_unordered(tx, f)
 end

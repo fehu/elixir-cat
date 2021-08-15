@@ -57,7 +57,7 @@ end
 alias Either.{Left, Right}
 
 defimpl Functor, for: [Either, Left, Right] do
-  @type t(r) :: Either.t(any(), r)
+  @type t(r) :: Either.t(any, r)
 
   @spec map(t(x), (x -> y)) :: t(y) when x: var, y: var
   def map(%Right{v: x}, f), do: %Right{v: f.(x)}
@@ -65,13 +65,10 @@ defimpl Functor, for: [Either, Left, Right] do
 end
 
 defimpl Applicative, for: [Either, Left, Right] do
-  @type t(r) :: Either.t(any(), r)
+  @type t(r) :: Either.t(any, r)
 
-  @spec map(t(x), (x -> y)) :: t(y) when x: var, y: var
-  defdelegate map(tx, f), to: Functor
-
-  @spec pure(x) :: t(x) when x: var
-  def pure(x), do: %Right{v: x}
+  @spec pure(t(any), x) :: t(x) when x: var
+  def pure(_, x), do: %Right{v: x}
 
   @spec ap(t((x -> y)), t(x)) :: t(y) when x: var, y: var
   def ap(%Right{v: f}, %Right{v: x}), do: %Right{v: f.(x)}
@@ -83,19 +80,7 @@ defimpl Applicative, for: [Either, Left, Right] do
 end
 
 defimpl Monad, for: [Either, Left, Right] do
-  @type t(r) :: Either.t(any(), r)
-
-  @spec map(t(x), (x -> y)) :: t(y) when x: var, y: var
-  defdelegate map(tx, f), to: Functor
-
-  @spec pure(x) :: t(x) when x: var
-  defdelegate pure(x), to: Applicative
-
-  @spec ap(t((x -> y)), t(x)) :: t(y) when x: var, y: var
-  defdelegate ap(tf, tx), to: Applicative
-
-  @spec product(t(x), t(y)) :: t({x, y}) when x: var, y: var
-  defdelegate product(tx, ty), to: Applicative
+  @type t(r) :: Either.t(any, r)
 
   @spec flat_map(t(x), (x -> t(y))) :: t(y) when x: var, y: var
   def flat_map(%Right{v: x}, f), do: f.(x)
@@ -103,18 +88,12 @@ defimpl Monad, for: [Either, Left, Right] do
 end
 
 defimpl MonadError, for: [Either, Left, Right] do
-  @type t(r) :: Either.t(any(), r)
+  @type t(r) :: Either.t(any, r)
 
-  defdelegate map(tx, f), to: Functor
-  defdelegate pure(x), to: Applicative
-  defdelegate ap(tf, tx), to: Applicative
-  defdelegate product(tx, ty), to: Applicative
-  defdelegate flat_map(tx, f), to: Monad
+  @spec raise(t(any), any) :: t(none)
+  def raise(_, error), do: %Left{v: error}
 
-  @spec raise(any()) :: t(none)
-  def raise(error), do: %Left{v: error}
-
-  @spec recover(t(x), (any() -> t(x))) :: t(x) when x: var
+  @spec recover(t(x), (any -> t(x))) :: t(x) when x: var
   def recover(%Left{v: error}, f), do: f.(error)
   def recover(right, _), do: right
 end

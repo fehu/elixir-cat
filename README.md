@@ -40,17 +40,22 @@ end)
 
 ## Protocols
 
+[Delegates](lib/cat/cat.ex)
+
+-----
+
 * [Functor](lib/cat/protocols/functor.ex)
 * [Applicative](lib/cat/protocols/applicative.ex)
 * [Monad](lib/cat/protocols/monad.ex)
 * [MonadError](lib/cat/protocols/monad_error.ex)
 -----
 * [Semigroup](lib/cat/protocols/semigroup.ex)
-* [~Monoid.ex~](lib/cat/protocols/monoid.ex)
+* [Monoid.ex](lib/cat/protocols/monoid.ex)
 -----
 * [Reducible](lib/cat/protocols/reducible.ex)
 * [Foldable](lib/cat/protocols/foldable.ex)
 
 ## Data
+
 * [Maybe](lib/cat/data/maybe.ex)
 * [Either](lib/cat/data/either.ex)

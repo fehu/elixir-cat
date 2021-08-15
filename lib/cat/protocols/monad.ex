@@ -1,4 +1,4 @@
-defprotocol Monad do
+defprotocol Cat.Monad do
   @moduledoc """
   Monad defines `flat_map(t(x), (x -> t(y))) :: t(y)`.
 
@@ -14,7 +14,9 @@ defprotocol Monad do
   def flat_map(tx, f)
 end
 
-defmodule Monad.Arrow do
+alias Cat.Monad
+
+defmodule Cat.Monad.Arrow do
   @spec flat_map((x -> Monad.t(y))) :: (Monad.t(x) -> Monad.t(y)) when x: var, y: var
   def flat_map(f), do: &Monad.flat_map(&1, f)
 end

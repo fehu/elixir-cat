@@ -1,6 +1,17 @@
 defmodule Cat do
   @moduledoc false
 
+  # # Data # #
+  alias Cat.{Either, Maybe}
+
+  @type maybe(x) :: Maybe.t(x)
+  @type either(l, r) :: Either.t(l, r)
+
+  # # Protocols # #
+
+  alias Cat.{Functor, Applicative, Monad, MonadError}
+  alias Cat.{Semigroup, Monoid, Foldable, Reducible}
+
   ## Delegates to protocols ##
 
   # Functor
@@ -82,4 +93,33 @@ defmodule Cat do
     defdelegate recover(tx), to: MonadError.Arrow
   end
 
+  # Bracket
+  # def bracketCase[A, B](acquire: F[A])(use: A => F[B])(release: (A, ExitCase[E]) => F[Unit]): F[B]
+  # def bracket[A, B](acquire: F[A])(use: A => F[B])(release: A => F[Unit]): F[B] =
+  # def guarantee[A](fa: F[A])(finalizer: F[Unit]): F[A]
+  # def guaranteeCase[A](fa: F[A])(finalizer: ExitCase[E] => F[Unit]): F[A] =
+
+  # Sync
+  # def defer[A](fa: => F[A]): F[A]
+  # def delay[A](thunk: => A): F[A] = defer(pure(thunk))
+
+  # Async
+  # def async[A](k: (Either[Throwable, A] => Unit) => Unit): F[A]
+  # def asyncF[A](k: (Either[Throwable, A] => Unit) => F[Unit]): F[A]
+  # def never[A]: F[A] = async(_ => ())
+
+  # Concurrent
+  # def start[A](fa: F[A]): F[Fiber[F, A]]
+  # def background[A](fa: F[A]): Resource[F, F[A]] =
+  #    Resource.make(start(fa))(_.cancel)(this).map(_.join)(this)
+  # def racePair[A, B](fa: F[A], fb: F[B]): F[Either[(A, Fiber[F, B]), (Fiber[F, A], B)]]
+  # def race[A, B](fa: F[A], fb: F[B]): F[Either[A, B]] =
+  #    flatMap(racePair(fa, fb)) {
+  #      case Left((a, fiberB))  => map(fiberB.cancel)(_ => Left(a))
+  #      case Right((fiberA, b)) => map(fiberA.cancel)(_ => Right(b))
+  #    }
+  #   def cancelable[A](k: (Either[Throwable, A] => Unit) => CancelToken[F]): F[A]
+  #
+
+  # Effect
 end

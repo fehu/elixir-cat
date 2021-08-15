@@ -1,4 +1,4 @@
-defmodule Syntax do
+defmodule Cat.Syntax do
   @moduledoc false
 
   defmacro monadic(do: {:with, _line, args}) do

@@ -1,4 +1,4 @@
-defprotocol Foldable do
+defprotocol Cat.Foldable do
   @type t(_x) :: term
 
   @spec fold_left(t(x), y, (y, x -> y)) :: y when x: var, y: var
@@ -7,6 +7,8 @@ defprotocol Foldable do
 #  @spec fold_right(t(x), y, ({x, y} -> y)) :: y when x: var, y: var
 #  def fold_right(tx, zero, f)
 end
+
+alias Cat.Foldable
 
 defimpl Foldable, for: List do
   @type t(x) :: [x]

@@ -1,4 +1,4 @@
-defprotocol Semigroup do
+defprotocol Cat.Semigroup do
   @moduledoc """
   Semigroup defines a sum `combine(t(), t()) :: t()`.
 
@@ -12,6 +12,8 @@ defprotocol Semigroup do
   def combine(x, y)
 
 end
+
+alias Cat.Semigroup
 
 defimpl Semigroup, for: [Integer, Float, Number] do
   @spec combine(number(), number()) :: number()

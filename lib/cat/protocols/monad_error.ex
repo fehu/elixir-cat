@@ -1,4 +1,4 @@
-defprotocol MonadError do
+defprotocol Cat.MonadError do
   @moduledoc """
   MonadError defines
     * `raise(t(any), error) :: t(none)`
@@ -17,7 +17,9 @@ defprotocol MonadError do
 
 end
 
-defmodule MonadError.Arrow do
+alias Cat.MonadError
+
+defmodule Cat.MonadError.Arrow do
   @spec raise(error) :: (MonadError.t(any) -> MonadError.t(none)) when error: any
   def raise(example), do: &MonadError.raise(example, &1)
 

@@ -1,4 +1,4 @@
-defprotocol Applicative do
+defprotocol Cat.Applicative do
   @moduledoc """
   Applicative defines
     * `pure(t(any), x) :: t(x)`
@@ -26,7 +26,9 @@ defprotocol Applicative do
   def product(tx, ty)
 end
 
-defmodule Applicative.Arrow do
+alias Cat.{Applicative, Functor}
+
+defmodule Cat.Applicative.Arrow do
   @spec pure(Applicative.t(any)) :: (x -> Applicative.t(x)) when x: var
   def pure(example), do: &Applicative.pure(example, &1)
 
@@ -34,7 +36,7 @@ defmodule Applicative.Arrow do
   def ap(tf), do: &Applicative.ap(tf, &1)
 end
 
-defmodule Applicative.Default do
+defmodule Cat.Applicative.Default do
   @moduledoc false
 
   @spec product(Applicative.t(x), Applicative.t(y)) :: Applicative.t({x, y}) when x: var, y: var

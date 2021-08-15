@@ -1,4 +1,4 @@
-defprotocol Reducible do
+defprotocol Cat.Reducible do
   @type t(_x) :: term
 
   @spec reduce_left(t(x), (x, x -> x)) :: x when x: var

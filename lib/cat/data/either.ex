@@ -1,4 +1,4 @@
-defmodule Either do
+defmodule Cat.Either do
   @moduledoc """
   Either `left` or `right`.
 
@@ -7,6 +7,8 @@ defmodule Either do
     * `Applicative`
     * `Monad`
   """
+
+  alias Cat.Maybe
 
   defmodule Left do
     @enforce_keys [:v]
@@ -57,9 +59,10 @@ defmodule Either do
   def sample(), do: %Left{v: :sample}
 end
 
-alias Either.{Left, Right}
+alias Cat.Either
+alias Cat.Either.{Left, Right}
 
-defimpl Functor, for: [Either, Left, Right] do
+defimpl Cat.Functor, for: [Either, Left, Right] do
   @type t(r) :: Either.t(any, r)
 
   @spec map(t(x), (x -> y)) :: t(y) when x: var, y: var
@@ -67,7 +70,7 @@ defimpl Functor, for: [Either, Left, Right] do
   def map(either, _), do: either
 end
 
-defimpl Applicative, for: [Either, Left, Right] do
+defimpl Cat.Applicative, for: [Either, Left, Right] do
   @type t(r) :: Either.t(any, r)
 
   @spec pure(t(any), x) :: t(x) when x: var
@@ -79,10 +82,10 @@ defimpl Applicative, for: [Either, Left, Right] do
   def ap(l, _), do: l
 
   @spec product(t(x), t(y)) :: t({x, y}) when x: var, y: var
-  defdelegate product(tx, ty), to: Applicative.Default
+  defdelegate product(tx, ty), to: Cat.Applicative.Default
 end
 
-defimpl Monad, for: [Either, Left, Right] do
+defimpl Cat.Monad, for: [Either, Left, Right] do
   @type t(r) :: Either.t(any, r)
 
   @spec flat_map(t(x), (x -> t(y))) :: t(y) when x: var, y: var
@@ -90,7 +93,7 @@ defimpl Monad, for: [Either, Left, Right] do
   def flat_map(l=%Left{}, _), do: l
 end
 
-defimpl MonadError, for: [Either, Left, Right] do
+defimpl Cat.MonadError, for: [Either, Left, Right] do
   @type t(r) :: Either.t(any, r)
 
   @spec raise(t(any), any) :: t(none)

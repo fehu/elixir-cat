@@ -1,4 +1,4 @@
-defprotocol Monoid do
+defprotocol Cat.Monoid do
   @moduledoc """
   Monoid defines zero(t()) :: t()`.
 
@@ -13,6 +13,8 @@ defprotocol Monoid do
   @spec zero(t()) :: t()
   def zero(example)
 end
+
+alias Cat.Monoid
 
 # Only `:additive`
 defimpl Monoid, for: [Integer, Float, Number] do

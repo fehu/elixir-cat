@@ -1,4 +1,4 @@
-defprotocol Functor do
+defprotocol Cat.Functor do
   @moduledoc """
   Functor defines `map(t(x), (x -> y)) :: t(y) when x: var, y: var`.
 
@@ -14,7 +14,9 @@ defprotocol Functor do
   def map(tx, f)
 end
 
-defmodule Functor.Arrow do
+alias Cat.Functor
+
+defmodule Cat.Functor.Arrow do
   @spec map((x -> y)) :: (Functor.t(x) -> Functor.t(y)) when x: var, y: var
   def map(f), do: &Functor.map(&1, f)
 end

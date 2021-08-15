@@ -1,6 +1,7 @@
 defmodule SyntaxMonadicTest do
   use ExUnit.Case
 
+  alias Cat.Syntax
   require Syntax
 
   test "convert `with` expressions to nested `Monad.flat_map` and `Functor`.map" do

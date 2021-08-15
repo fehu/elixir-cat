@@ -1,5 +1,5 @@
 # TODO: rewrite not to depend on `nil`
-defmodule Maybe do
+defmodule Cat.Maybe do
   @moduledoc """
     A value or nil.
 
@@ -51,7 +51,10 @@ defmodule Maybe do
   ########## PROTOCOL IMPLEMENTATIONS #########
   #############################################
 
-  defimpl Functor, for: Maybe do
+  alias Cat.Maybe
+  alias Cat.Maybe.{Just, Nothing}
+
+  defimpl Cat.Functor, for: [Maybe, Just, Nothing] do
     @type t(x) :: Maybe.t(x)
 
     @spec map(t(x), (x -> y)) :: t(y) when x: var, y: var
@@ -59,7 +62,7 @@ defmodule Maybe do
     def map(%Just{val: x}, f), do: %Just{val: f.(x)}
   end
 
-  defimpl Applicative, for: Maybe do
+  defimpl Cat.Applicative, for: [Maybe, Just, Nothing] do
     @type t(x) :: Maybe.t(x)
 
     @spec pure(t(any), x) :: t(x) when x: var
@@ -71,10 +74,10 @@ defmodule Maybe do
     def ap(f, %Just{val: x}), do: f.(x)
 
     @spec product(t(x), t(y)) :: t({x, y}) when x: var, y: var
-    defdelegate product(tx, ty), to: Applicative.Default
+    defdelegate product(tx, ty), to: Cat.Applicative.Default
   end
 
-  defimpl Monad, for: Maybe do
+  defimpl Cat.Monad, for: [Maybe, Just, Nothing] do
     @type t(x) :: Maybe.t(x)
 
     @spec flat_map(t(x), (x -> t(y))) :: t(y) when x: var, y: var

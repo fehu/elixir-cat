@@ -19,6 +19,9 @@ defmodule Cat do
   @spec map(Functor.t(x), (x -> y)) :: Functor.t(y) when x: var, y: var
   defdelegate map(tx, f), to: Functor
 
+  @spec as(Functor.t(any), x) :: Functor.t(x) when x: var
+  defdelegate as(t, x), to: Functor
+
   # Applicative
 
   @spec pure(Applicative.t(any), x) :: Applicative.t(x) when x: var
@@ -70,6 +73,9 @@ defmodule Cat do
 
     @spec map((x -> y)) :: (Functor.t(x) -> Functor.t(y)) when x: var, y: var
     defdelegate map(f), to: Functor.Arrow
+
+    @spec as(Functor.t(any)) :: (x -> Functor.t(x)) when x: var
+    defdelegate as(t), to: Functor.Arrow
 
     # Applicative
 

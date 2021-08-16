@@ -60,6 +60,9 @@ defmodule Cat.Maybe do
     @spec map(t(x), (x -> y)) :: t(y) when x: var, y: var
     def map(%Nothing{}, _), do: %Nothing{}
     def map(%Just{val: x}, f), do: %Just{val: f.(x)}
+
+    @spec as(t(any), x) :: t(x) when x: var
+    defdelegate as(t, x), to: Cat.Functor.Default
   end
 
   defimpl Cat.Applicative, for: [Maybe, Just, Nothing] do

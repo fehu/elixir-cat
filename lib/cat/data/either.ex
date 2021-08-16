@@ -68,6 +68,9 @@ defimpl Cat.Functor, for: [Either, Left, Right] do
   @spec map(t(x), (x -> y)) :: t(y) when x: var, y: var
   def map(%Right{v: x}, f), do: %Right{v: f.(x)}
   def map(either, _), do: either
+
+  @spec as(t(any), x) :: t(x) when x: var
+  defdelegate as(t, x), to: Cat.Functor.Default
 end
 
 defimpl Cat.Applicative, for: [Either, Left, Right] do

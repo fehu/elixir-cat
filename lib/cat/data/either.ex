@@ -105,4 +105,11 @@ defimpl Cat.MonadError, for: [Either, Left, Right] do
   @spec recover(t(x), (any -> t(x))) :: t(x) when x: var
   def recover(%Left{v: error}, f), do: f.(error)
   def recover(right, _), do: right
+
+  @spec lift_ok_or_error(t(any), Cat.MonadError.ok_or_error(x)) :: t(x) when x: var
+  def lift_ok_or_error(_, {:ok, x}), do: %Right{v: x}
+  def lift_ok_or_error(_, {:error, e}), do: %Left{v: e}
+
+  @spec attempt(t(x)) :: t(Cat.MonadError.ok_or_error(x)) when x: var
+  defdelegate attempt(tx), to: Cat.MonadError.Default
 end

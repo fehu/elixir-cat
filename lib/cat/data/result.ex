@@ -117,4 +117,11 @@ defimpl MonadError, for: [Done, Failure, Success] do
   def recover(%Failure{reasons: errors}, f), do: f.(errors)
   def recover(%Done{}, f), do: f.([:empty])
   def recover(succ=%Success{}, _), do: succ
+
+  @spec lift_ok_or_error(Result.t(any), MonadError.ok_or_error(x)) :: Result.t(x) when x: var
+  def lift_ok_or_error(_, {:ok, x}), do: %Success{val: x}
+  def lift_ok_or_error(_, {:error, e}), do: %Failure{reasons: [e]}
+
+  @spec attempt(Result.t(x)) :: Result.t(MonadError.ok_or_error(x)) when x: var
+  defdelegate attempt(tx), to: Cat.MonadError.Default
 end

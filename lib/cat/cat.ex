@@ -46,6 +46,12 @@ defmodule Cat do
   @spec recover(MonadError.t(x), (error -> MonadError.t(x))) :: MonadError.t(x) when x: var, error: any
   defdelegate recover(tx, f), to: MonadError
 
+  @spec lift_ok_or_error(MonadError.t(any), MonadError.ok_or_error(x)) :: MonadError.t(x) when x: var
+  defdelegate lift_ok_or_error(example, result), to: MonadError
+
+  @spec attempt(MonadError.t(x)) :: MonadError.t(MonadError.ok_or_error(x)) when x: var
+  defdelegate attempt(tx), to: MonadError
+
   # Semigroup
 
   @spec combine(Semigroup.t(), Semigroup.t()) :: Semigroup.t()
@@ -97,6 +103,9 @@ defmodule Cat do
 
     @spec recover((error -> MonadError.t(x))) :: (MonadError.t(x) -> MonadError.t(x)) when x: var, error: any
     defdelegate recover(tx), to: MonadError.Arrow
+
+    @spec lift_ok_or_error(MonadError.t(any)) :: (MonadError.ok_or_error(x) -> MonadError.t(x)) when x: var
+    defdelegate lift_ok_or_error(example), to: MonadError.Arrow
   end
 
   # Bracket

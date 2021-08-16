@@ -1,7 +1,7 @@
 defmodule SyntaxMonadicTest do
   use ExUnit.Case
 
-  alias Cat.{Result, Syntax}
+  alias Cat.{Either, Result, Syntax}
   require Syntax
 
   test "convert `with` expressions to nested `Monad.flat_map` and `Functor`.map" do
@@ -25,6 +25,7 @@ defmodule SyntaxMonadicTest do
       end)\
       """
     assert show_code(expr) == expected
+    assert eval_code(expr) == Either.left("!")
   end
 
   test "convert `with` expressions with `else` clause to `MonadError.recover`" do
@@ -56,7 +57,12 @@ defmodule SyntaxMonadicTest do
       end)\
       """
     assert show_code(expr) == expected
+    assert eval_code(expr) == Result.ok("-")
   end
 
   defp show_code(expr), do: Macro.to_string(Macro.expand(expr, __ENV__))
+  defp eval_code(expr) do
+    {result, _} = Code.eval_quoted(expr, [], __ENV__)
+    result
+  end
 end

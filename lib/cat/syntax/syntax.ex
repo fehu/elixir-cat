@@ -21,7 +21,7 @@ defmodule Cat.Syntax do
           end)
     case else_ do
       nil -> monadic_expr
-      f   -> quote do: MonadError.recover(unquote(monadic_expr), unquote(mk_fun(f)))
+      f   -> quote do: Cat.MonadError.recover(unquote(monadic_expr), unquote(mk_fun(f)))
     end
   end
 
@@ -31,8 +31,8 @@ defmodule Cat.Syntax do
   defp monadic_expr(var, ctx, val, op, arg) do
     f_expr = quote do: fn unquote(Macro.var(var, ctx)) -> unquote(arg) end
     case op do
-      :map      -> quote do: Functor.map(unquote(val), unquote(f_expr))
-      :flat_map -> quote do: Monad.flat_map(unquote(val), unquote(f_expr))
+      :map      -> quote do: Cat.Functor.map(unquote(val), unquote(f_expr))
+      :flat_map -> quote do: Cat.Monad.flat_map(unquote(val), unquote(f_expr))
     end
   end
 

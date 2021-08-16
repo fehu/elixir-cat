@@ -16,9 +16,9 @@ defmodule SyntaxMonadicTest do
     end
     expected =
       """
-      Monad.flat_map(Either.right(1), fn x ->
+      Cat.Monad.flat_map(Either.right(1), fn x ->
         IO.puts(\"x = \#{x}\")
-        Functor.map(Either.left(\"!\"), fn y ->
+        Cat.Functor.map(Either.left(\"!\"), fn y ->
           IO.puts(\"y = \#{y}\")
           x + y
         end)
@@ -44,9 +44,9 @@ defmodule SyntaxMonadicTest do
     end
     expected =
       """
-      MonadError.recover(Monad.flat_map(Either.right(1), fn x ->
+      Cat.MonadError.recover(Cat.Monad.flat_map(Either.right(1), fn x ->
         IO.puts("x1 = \#{x}")
-        Functor.map(Either.left("!"), fn y ->
+        Cat.Functor.map(Either.left("!"), fn y ->
           IO.puts("y = \#{y}")
           x + y
         end)

@@ -44,6 +44,16 @@ defmodule Cat.Applicative.Default do
     fs = Functor.map(tx, fn x -> (fn y -> {x, y} end) end)
     Applicative.ap(fs, ty)
   end
+
+  defmodule FromMonad do
+    alias Cat.Monad
+
+    @spec ap(Applicative.t((x -> y)), Applicative.t(x)) :: Applicative.t(y) when x: var, y: var
+    def ap(tf, tx), do:
+      Monad.flat_map tf, fn f ->
+        Functor.map(tx, f)
+      end
+  end
 end
 
 defimpl Applicative, for: List do

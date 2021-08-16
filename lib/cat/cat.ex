@@ -1,5 +1,7 @@
 defmodule Cat do
-  @moduledoc false
+  @moduledoc """
+    Inspired by [cats](https://github.com/typelevel/cats) and [cats-effect (2)](https://github.com/typelevel/cats-effect)
+  """
 
   # # Data # #
   alias Cat.{Either, Maybe}
@@ -108,33 +110,78 @@ defmodule Cat do
     defdelegate lift_ok_or_error(example), to: MonadError.Arrow
   end
 
-  # Bracket
-  # def bracketCase[A, B](acquire: F[A])(use: A => F[B])(release: (A, ExitCase[E]) => F[Unit]): F[B]
-  # def bracket[A, B](acquire: F[A])(use: A => F[B])(release: A => F[Unit]): F[B] =
-  # def guarantee[A](fa: F[A])(finalizer: F[Unit]): F[A]
-  # def guaranteeCase[A](fa: F[A])(finalizer: ExitCase[E] => F[Unit]): F[A] =
 
-  # Sync
-  # def defer[A](fa: => F[A]): F[A]
-  # def delay[A](thunk: => A): F[A] = defer(pure(thunk))
+  # # Effect # #
 
-  # Async
-  # def async[A](k: (Either[Throwable, A] => Unit) => Unit): F[A]
-  # def asyncF[A](k: (Either[Throwable, A] => Unit) => F[Unit]): F[A]
-  # def never[A]: F[A] = async(_ => ())
+  defmodule Effect do
 
-  # Concurrent
-  # def start[A](fa: F[A]): F[Fiber[F, A]]
-  # def background[A](fa: F[A]): Resource[F, F[A]] =
-  #    Resource.make(start(fa))(_.cancel)(this).map(_.join)(this)
-  # def racePair[A, B](fa: F[A], fb: F[B]): F[Either[(A, Fiber[F, B]), (Fiber[F, A], B)]]
-  # def race[A, B](fa: F[A], fb: F[B]): F[Either[A, B]] =
-  #    flatMap(racePair(fa, fb)) {
-  #      case Left((a, fiberB))  => map(fiberB.cancel)(_ => Left(a))
-  #      case Right((fiberA, b)) => map(fiberA.cancel)(_ => Right(b))
-  #    }
-  #   def cancelable[A](k: (Either[Throwable, A] => Unit) => CancelToken[F]): F[A]
-  #
+    alias Cat.Effect.{Async, Bracket, Sync}
 
-  # Effect
+    ## Delegates to protocols ##
+
+    # Bracket
+
+    @spec bracket(
+            acquire: Bracket.t(x),
+            use: (x -> Bracket.t(y)),
+            release: (Bracket.exit_case(x) -> Bracket.t(no_return))
+          ) :: Bracket.t(y) when x: var, y: var
+    def bracket(acquire: acquire, use: use, release: release), do:
+      Bracket.bracket(acquire, use, release)
+
+    @spec guarantee(Bracket.t(x), finalize: Bracket.t(no_return)) :: Bracket.t(x) when x: var
+    def guarantee(tx, finalize: finalizer), do:
+      Bracket.guarantee(tx, finalizer)
+
+    @spec uncancelable(Bracket.t(x)) :: Bracket.t(x) when x: var
+    defdelegate uncancelable(tx), to: Bracket
+
+    # Sync
+
+    @spec defer((-> Sync.t(x))) :: Sync.t(x) when x: var
+    defdelegate defer(txf), to: Sync
+
+    @spec delay(Sync.t(any), (-> x)) :: Sync.t(x) when x: var
+    defdelegate delay(example, xf), to: Sync
+
+    # Async
+
+    @spec async(Async.t(any), (Async.callback(x) -> Async.t(no_return) | no_return)) :: Async.t(x) when x: var
+    defdelegate async(example, fun), to: Async
+
+    @spec async_effect(Async.t(x), (Bracket.exit_case(x) -> Async.t(no_return))) :: Async.t(no_return) when x: var
+    defdelegate async_effect(effect, on_complete), to: Async
+    
+    @spec never(Async.t(any)) :: Async.t(none)
+    defdelegate never(example), to: Async
+
+    ## Delegates to protocols' arrows
+
+    defmodule Arrow do
+      # Bracket
+
+      @spec bracket(
+              acquire: Bracket.t(x),
+              release: (Bracket.exit_case(x) -> Bracket.t(no_return))
+            ) :: (Bracket.Arrow.use(x, y) -> Bracket.t(y)) when x: var, y: var
+      def bracket(acquire: acquire, release: release), do: Bracket.Arrow.bracket(acquire: acquire, release: release)
+
+      @spec guarantee(Bracket.t(no_return)) :: (Bracket.t(x) -> Bracket.t(x)) when x: var
+      defdelegate guarantee(finalizer), to: Bracket.Arrow
+
+      # Sync
+
+      @spec delay(Sync.t(any)) :: ((-> x) -> Sync.t(x)) when x: var
+      defdelegate delay(example), to: Sync.Arrow
+
+      # Async
+
+      @spec async(Async.t(any)) :: ((Async.callback(x) -> Async.t(no_return) | no_return) -> Async.t(x)) when x: var
+      defdelegate async(example), to: Async.Arrow
+
+      @spec async_effect((Bracket.exit_case(x) -> Async.t(no_return))) :: (Async.t(x) -> Async.t(no_return)) when x: var
+      defdelegate async_effect(on_complete), to: Async.Arrow
+    end
+  end
+
 end

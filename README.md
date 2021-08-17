@@ -12,11 +12,11 @@ If clause has `else` expression, it's mapped to ``MonadError.recover`.
 
 ```elixir
 Syntax.monadic do
-  with x <- Either.right(1),
-       _ = IO.puts("x1 = #{x}"),
-       y <- Either.left("!"),
-       _ = IO.puts("y = #{y}")
-    do x + y
+  with a <- Either.right(1),
+       _ = IO.puts("x1 = #{a}"),
+       b <- Either.left("!"),
+       _ = IO.puts("b = #{b}")
+    do a + b
   else
     failure ->
       IO.puts(failure)
@@ -26,11 +26,11 @@ end
 ```
 Is [rewritten](test/syntax_monadic_test.exs) to
 ```elixir
-MonadError.recover(Monad.flat_map(Either.right(1), fn x ->
-  IO.puts("x1 = \#{x}")
-  Functor.map(Either.left("!"), fn y ->
-    IO.puts("y = \#{y}")
-    x + y
+MonadError.recover(Monad.flat_map(Either.right(1), fn a ->
+  IO.puts("x1 = \#{a}")
+  Functor.map(Either.left("!"), fn b ->
+    IO.puts("b = \#{b}")
+    a + b
   end)
 end), fn failure ->
   IO.puts(failure)

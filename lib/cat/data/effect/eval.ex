@@ -55,135 +55,167 @@ defmodule Cat.Effect.Eval do
   # [NoOp, Pure, Map, FlatMap, Error, Bracket, Delay, Suspend]
 
   @typep no_op :: %NoOp{}
-  @typep pure(x) :: %Pure{val: x}
-  @typep map(x, y) :: %Map{eval: t(x), fun: (x -> y)}
-  @typep flat_map(x, y) :: %FlatMap{eval: t(x), fun: (x -> t(y))}
+  @typep pure(a) :: %Pure{val: a}
+  @typep map(a, b) :: %Map{eval: t(a), fun: (a -> b)}
+  @typep flat_map(a, b) :: %FlatMap{eval: t(a), fun: (a -> t(b))}
   @typep error :: %Error{error: any}
-  @typep recover(x, y) :: %Recover{eval: t(x), handle: (any -> t(y))}
-  @typep bracket(x, y) :: %Bracket{acquire: t(x), use: (x -> t(y)), release: (Bracket.exit_case(x) -> t(no_return))}
-  @typep delay(x) :: %Delay{effect: (-> x)}
-  @typep suspend(x) :: %Suspend{effect: t(x)}
-  @typep async(x) :: %Async{exec: (Effect.Async.callback(x) -> t(no_return))}
+  @typep recover(a, b) :: %Recover{eval: t(a), handle: (any -> t(b))}
+  @typep bracket(a, b) :: %Bracket{acquire: t(a), use: (a -> t(b)), release: (Bracket.exit_case(a) -> t(no_return))}
+  @typep delay(a) :: %Delay{effect: (-> a)}
+  @typep suspend(a) :: %Suspend{effect: t(a)}
+  @typep async(a) :: %Async{exec: (Effect.Async.callback(a) -> t(no_return))}
 
-  @type t(x) :: no_op
-              | pure(x)
-              | map(any, x)
-              | flat_map(any, x)
+  @type t(a) :: no_op
+              | pure(a)
+              | map(any, a)
+              | flat_map(any, a)
               | error
-              | recover(any, x)
-              | bracket(any, x)
-              | delay(x)
-              | suspend(x)
-              | async(x)
+              | recover(any, a)
+              | bracket(any, a)
+              | delay(a)
+              | suspend(a)
+              | async(a)
 
   @spec no_op :: t(none)
   def no_op, do: %NoOp{}
 
-  @spec pure(x) :: t(x) when x: var
-  def pure(x), do: %Pure{val: x}
+  @spec pure(a) :: t(a) when a: var
+  def pure(a), do: %Pure{val: a}
 
-  @spec map(t(x), (x -> y)) :: t(y) when x: var, y: var
-  def map(tx, f), do: %Map{eval: tx, fun: f}
+  @spec map(t(a), (a -> b)) :: t(b) when a: var, b: var
+  def map(ta, f), do: %Map{eval: ta, fun: f}
 
-  @spec flat_map(t(x), (x -> t(y))) :: t(y) when x: var, y: var
-  def flat_map(tx, f), do: %FlatMap{eval: tx, fun: f}
+  @spec flat_map(t(a), (a -> t(b))) :: t(b) when a: var, b: var
+  def flat_map(ta, f), do: %FlatMap{eval: ta, fun: f}
 
   @spec error(any) :: t(none)
   def error(err), do: %Error{error: err}
 
-  @spec recover(t(x), (error -> t(x))) :: t(x) when x: var, error: any
-  def recover(tx, handle), do: %Recover{eval: tx, handle: handle}
+  @spec recover(t(a), (error -> t(a))) :: t(a) when a: var, error: any
+  def recover(ta, handle), do: %Recover{eval: ta, handle: handle}
 
-  @spec bracket(t(x), (x -> t(y)), (Bracket.exit_case(x) -> t(no_return))) :: t(y) when x: var, y: var
+  @spec bracket(t(a), (a -> t(b)), (Bracket.exit_case(a) -> t(no_return))) :: t(b) when a: var, b: var
   def bracket(acquire, use, release), do: %Bracket{acquire: acquire, use: use, release: release}
 
-  @spec delay_((-> x)) :: t(x) when x: var
+  @spec delay_((-> a)) :: t(a) when a: var
   def delay_(fx), do: %Delay{effect: fx}
 
-  defmacro delay(x) do
-    quote do: %Delay{effect: fn -> unquote(x) end}
+  defmacro delay(a) do
+    quote do: %Delay{effect: fn -> unquote(a) end}
   end
 
-  @spec suspend_((-> t(x))) :: t(x) when x: var
-  def suspend_(ftx), do: %Suspend{effect: ftx}
+  @spec suspend_((-> t(a))) :: t(a) when a: var
+  def suspend_(fta), do: %Suspend{effect: fta}
 
-  defmacro suspend(tx) do
-    quote do: %Suspend{effect: fn -> unquote(tx) end}
+  defmacro suspend(ta) do
+    quote do: %Suspend{effect: fn -> unquote(ta) end}
   end
 
-  @spec async((Async.callback(x) -> t(no_return))) :: t(x) when x: var
+  @spec async((Async.callback(a) -> t(no_return))) :: t(a) when a: var
   def async(fun), do: %Async{exec: fun}
 end
 
-alias Cat.{Applicative, Effect, Functor, Monad, MonadError}
-alias Cat.Effect.Eval
-alias Cat.Effect.Eval.{NoOp, Pure, Map, FlatMap, Error, Bracket, Delay, Suspend, Async}
-
-defimpl Functor, for: [NoOp, Pure, Map, FlatMap, Error, Bracket, Delay, Suspend, Async] do
-  @spec map(Eval.t(x), (x -> y)) :: Eval.t(y) when x: var, y: var
-  defdelegate map(tx, f), to: Eval
-
-  @spec as(Eval.t(any), x) :: Eval.t(x) when x: var
-  defdelegate as(t, x), to: Functor.Default
-end
-
-defimpl Applicative, for: [NoOp, Pure, Map, FlatMap, Error, Bracket, Delay, Suspend, Async] do
-  @spec pure(Eval.t(any), x) :: Eval.t(x) when x: var
-  def pure(_, x), do: Eval.pure(x)
-
-  @spec ap(Eval.t((x -> y)), Eval.t(x)) :: Eval.t(y) when x: var, y: var
-  defdelegate ap(tf, tx), to: Applicative.Default.FromMonad
-
-  @spec product(Eval.t(x), Eval.t(y)) :: Eval.t({x, y}) when x: var, y: var
-  defdelegate product(tx, ty), to: Applicative.Default
-end
-
-defimpl Monad, for: [NoOp, Pure, Map, FlatMap, Error, Bracket, Delay, Suspend, Async] do
-  @spec flat_map(Eval.t(x), (x -> Eval.t(y))) :: Eval.t(y) when x: var, y: var
-  defdelegate flat_map(tx, f), to: Eval
-end
-
-defimpl MonadError, for: [NoOp, Pure, Map, FlatMap, Error, Bracket, Delay, Suspend, Async] do
-  @spec raise(Eval.t(any), error) :: Eval.t(none) when error: any
-  def raise(_, error), do: Eval.error(error)
-
-  @spec recover(Eval.t(x), (error -> Eval.t(x))) :: Eval.t(x) when x: var, error: any
-  defdelegate recover(tx, f), to: Eval
-
-  @spec lift_ok_or_error(Eval.t(any), MonadError.ok_or_error(x)) :: Eval.t(x) when x: var
-  def lift_ok_or_error(_, {:ok, x}), do: %Pure{val: x}
-  def lift_ok_or_error(_, {:error, e}), do: %Error{error: e}
-
-  @spec attempt(Eval.t(x)) :: Eval.t(MonadError.ok_or_error(x)) when x: var
-  defdelegate attempt(tx), to: Cat.MonadError.Default
-end
-
-defimpl Effect.Bracket, for: [NoOp, Pure, Map, FlatMap, Error, Bracket, Delay, Suspend, Async] do
-  @spec bracket(Eval.t(x), (x -> Eval.t(y)), (Effect.Bracket.exit_case(x) -> Eval.t(no_return))) :: Eval.t(y) when x: var, y: var
-  defdelegate bracket(acquire, use, release), to: Eval
-
-  @spec guarantee(Eval.t(x), Eval.t(no_return)) :: Eval.t(x) when x: var
-  defdelegate guarantee(tx, finalizer), to: Cat.Effect.Bracket.Default
-
-  @spec uncancelable(Eval.t(x)) :: Eval.t(x) when x: var
-  defdelegate uncancelable(tx), to: Cat.Effect.Bracket.Default
-end
-
-defimpl Effect.Sync, for: [NoOp, Pure, Map, FlatMap, Error, Bracket, Delay, Suspend, Async] do
-  @spec defer((-> Eval.t(x))) :: Eval.t(x) when x: var
-  defdelegate defer(txf), to: Eval, as: :suspend_
-
-  @spec delay(Eval.t(any), (-> x)) :: Eval.t(x) when x: var
-  def delay(_, xf), do: Eval.delay_(xf)
-end
-
-defimpl Effect.Async, for: [NoOp, Pure, Map, FlatMap, Error, Bracket, Delay, Suspend, Async] do
-  @spec async(Eval.t(any), (Async.callback(x) -> no_return)) :: Eval.t(x) when x: var
-  defdelegate async(example, fun), to: Eval
-
-  @spec async_effect(Eval.t(x), (Bracket.exit_case(x) -> Eval.t(no_return))) :: Eval.t(no_return) when x: var
-  defdelegate async_effect(effect, on_complete), to: Cat.Effect.Async.Default
-
-  @spec never(Eval.t(any)) :: Eval.t(none)
-  defdelegate never(example), to: Cat.Effect.Async.Default
-end
+#  alias Cat.{Applicative, Effect, Functor, Monad, MonadError}
+#  alias Cat.Effect.Eval
+#  alias Cat.Effect.Eval.{NoOp, Pure, Map, FlatMap, Error, Bracket, Delay, Suspend, Async}
+#
+#  defimpl Functor, for: [NoOp, Pure, Map, FlatMap, Error, Bracket, Delay, Suspend, Async] do
+#    @spec map(Eval.t(a), (a -> b)) :: Eval.t(b) when a: var, b: var
+#    defdelegate map(ta, f), to: Eval
+#
+#    @spec as(Eval.t(any), a) :: Eval.t(a) when a: var
+#    defdelegate as(t, a), to: Functor.Default
+#  end
+#
+#  defimpl Applicative, for: [NoOp, Pure, Map, FlatMap, Error, Bracket, Delay, Suspend, Async] do
+#    @spec pure(Eval.t(any), a) :: Eval.t(a) when a: var
+#    def pure(_, a), do: Eval.pure(a)
+#
+#    @spec ap(Eval.t((a -> b)), Eval.t(a)) :: Eval.t(b) when a: var, b: var
+#    defdelegate ap(tf, ta), to: Applicative.Default.FromMonad
+#
+#    @spec product(Eval.t(a), Eval.t(b)) :: Eval.t({a, b}) when a: var, b: var
+#    defdelegate product(ta, tb), to: Applicative.Default
+#  end
+#
+#  defimpl Monad, for: [NoOp, Pure, Map, FlatMap, Error, Bracket, Delay, Suspend, Async] do
+#    @spec flat_map(Eval.t(a), (a -> Eval.t(b))) :: Eval.t(b) when a: var, b: var
+#    defdelegate flat_map(ta, f), to: Eval
+#
+#    @spec flat_tap(Eval.t(a), (a -> Eval.t(no_return))) :: Eval.t(a) when a: var
+#    defdelegate flat_tap(ta, f), to: Cat.Monad.Default
+#  end
+#
+#  defimpl MonadError, for: [NoOp, Pure, Map, FlatMap, Error, Bracket, Delay, Suspend, Async] do
+#    @spec raise(Eval.t(any), error) :: Eval.t(none) when error: any
+#    def raise(_, error), do: Eval.error(error)
+#
+#    @spec recover(Eval.t(a), (error -> Eval.t(a))) :: Eval.t(a) when a: var, error: any
+#    defdelegate recover(ta, f), to: Eval
+#
+#    @spec lift_ok_or_error(Eval.t(any), MonadError.ok_or_error(a)) :: Eval.t(a) when a: var
+#    def lift_ok_or_error(_, {:ok, a}), do: %Pure{val: a}
+#    def lift_ok_or_error(_, {:error, e}), do: %Error{error: e}
+#
+#    @spec attempt(Eval.t(a)) :: Eval.t(MonadError.ok_or_error(a)) when a: var
+#    defdelegate attempt(ta), to: Cat.MonadError.Default
+#  end
+#
+#  defimpl Effect.Bracket, for: [NoOp, Pure, Map, FlatMap, Error, Bracket, Delay, Suspend, Async] do
+#    @spec uncancelable((Effect.Bracket.poll -> Eval.t(a))) :: Eval.t(a) when a: var
+#    def uncancelable(taf) do
+#
+#    end
+#
+#    @spec canceled(Eval.t(any)) :: Eval.t(none)
+#    def canceled(example) do
+#
+#    end
+#
+#    @spec on_cancel(Eval.t(a), Eval.t(no_return)) :: Eval.t(a) when a: var
+#    def on_cancel(ta, finalizer) do
+#
+#    end
+#
+#    @spec bracket(
+#            (Effect.Bracket.poll -> Eval.t(a)),
+#            (a -> Eval.t(b)),
+#            (a, Effect.Bracket.exit_case(b) -> Eval.t(:no_return) | :no_return)
+#          ) :: t(b) when a: var, b: var
+#    def bracket(acquire, use, release) do
+#
+#    end
+#
+#    @spec guarantee(Eval.t(a), (Effect.Bracket.exit_case(a) -> Eval.t(no_return))) :: Eval.t(a) when a: var
+#    def guarantee(ta, finalizer) do
+#
+#    end
+#
+#  #  @spec bracket(Eval.t(a), (a -> Eval.t(b)), (Effect.Bracket.exit_case(a) -> Eval.t(no_return))) :: Eval.t(b) when a: var, b: var
+#  #  defdelegate bracket(acquire, use, release), to: Eval
+#  #
+#  #  @spec guarantee(Eval.t(a), Eval.t(no_return)) :: Eval.t(a) when a: var
+#  #  defdelegate guarantee(ta, finalizer), to: Cat.Effect.Bracket.Default
+#  #
+#  #  @spec uncancelable(Eval.t(a)) :: Eval.t(a) when a: var
+#  #  defdelegate uncancelable(ta), to: Cat.Effect.Bracket.Default
+#  end
+#
+#  defimpl Effect.Sync, for: [NoOp, Pure, Map, FlatMap, Error, Bracket, Delay, Suspend, Async] do
+#    @spec defer((-> Eval.t(a))) :: Eval.t(a) when a: var
+#    defdelegate defer(taf), to: Eval, as: :suspend_
+#
+#    @spec delay(Eval.t(any), (-> a)) :: Eval.t(a) when a: var
+#    def delay(_, xf), do: Eval.delay_(xf)
+#  end
+#
+#  defimpl Effect.Async, for: [NoOp, Pure, Map, FlatMap, Error, Bracket, Delay, Suspend, Async] do
+#    @spec async(Eval.t(any), (Async.callback(a) -> no_return)) :: Eval.t(a) when a: var
+#    defdelegate async(example, fun), to: Eval
+#
+#    @spec async_effect(Eval.t(a), (Bracket.exit_case(a) -> Eval.t(no_return))) :: Eval.t(no_return) when a: var
+#    defdelegate async_effect(effect, on_complete), to: Cat.Effect.Async.Default
+#
+#    @spec never(Eval.t(any)) :: Eval.t(none)
+#    defdelegate never(example), to: Cat.Effect.Async.Default
+#  end

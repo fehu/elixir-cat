@@ -7,20 +7,20 @@ defmodule SyntaxMonadicTest do
   test "convert `with` expressions to nested `Monad.flat_map` and `Functor`.map" do
     expr = quote do
       Syntax.monadic do
-        with x <- Either.right(1),
-             _ = IO.puts("x = #{x}"),
-             y <- Either.left("!"),
-             _ = IO.puts("y = #{y}"),
-             do: x + y
+        with a <- Either.right(1),
+             _ = IO.puts("a = #{a}"),
+             b <- Either.left("!"),
+             _ = IO.puts("b = #{b}"),
+             do: a + b
       end
     end
     expected =
       """
-      Cat.Monad.flat_map(Either.right(1), fn x ->
-        IO.puts(\"x = \#{x}\")
-        Cat.Functor.map(Either.left(\"!\"), fn y ->
-          IO.puts(\"y = \#{y}\")
-          x + y
+      Cat.Monad.flat_map(Either.right(1), fn a ->
+        IO.puts(\"a = \#{a}\")
+        Cat.Functor.map(Either.left(\"!\"), fn b ->
+          IO.puts(\"b = \#{b}\")
+          a + b
         end)
       end)\
       """
@@ -31,11 +31,11 @@ defmodule SyntaxMonadicTest do
   test "convert `with` expressions with `else` clause to `MonadError.recover`" do
     expr = quote do
       Syntax.monadic do
-        with x <- Result.lift({:ok, 1}),
-             _ = IO.puts("x = #{x}"),
-             y <- Result.fail("!"),
-             _ = IO.puts("y = #{y}")
-          do x + y
+        with a <- Result.lift({:ok, 1}),
+             _ = IO.puts("a = #{a}"),
+             b <- Result.fail("!"),
+             _ = IO.puts("b = #{b}")
+          do a + b
         else
           failures ->
             Enum.each(failures, &(IO.inspect(&1)))
@@ -45,11 +45,11 @@ defmodule SyntaxMonadicTest do
     end
     expected =
       """
-      Cat.MonadError.recover(Cat.Monad.flat_map(Result.lift({:ok, 1}), fn x ->
-        IO.puts("x = \#{x}")
-        Cat.Functor.map(Result.fail("!"), fn y ->
-          IO.puts("y = \#{y}")
-          x + y
+      Cat.MonadError.recover(Cat.Monad.flat_map(Result.lift({:ok, 1}), fn a ->
+        IO.puts("a = \#{a}")
+        Cat.Functor.map(Result.fail("!"), fn b ->
+          IO.puts("b = \#{b}")
+          a + b
         end)
       end), fn failures ->
         Enum.each(failures, &(IO.inspect(&1)))

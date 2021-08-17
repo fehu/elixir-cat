@@ -20,8 +20,8 @@ defmodule Cat.Either do
     defstruct [:v]
   end
 
-  @type left(x) :: %Left{v: x}
-  @type right(x) :: %Right{v: x}
+  @type left(a) :: %Left{v: a}
+  @type right(a) :: %Right{v: a}
 
   @type t(l, r) :: left(l) | right(r)
 
@@ -47,7 +47,7 @@ defmodule Cat.Either do
   def maybe_right(%Right{v: r}), do: r
   def maybe_right(%Left{}), do: nil
 
-  @spec fold(t(l, r), (l -> x), (r -> x)) :: x when l: var, r: var, x: var
+  @spec fold(t(l, r), (l -> a), (r -> a)) :: a when l: var, r: var, a: var
   def fold(%Left{v: l}, case_left, _), do: case_left.(l)
   def fold(%Right{v: r}, _, case_right), do: case_right.(r)
 
@@ -65,35 +65,38 @@ alias Cat.Either.{Left, Right}
 defimpl Cat.Functor, for: [Either, Left, Right] do
   @type t(r) :: Either.t(any, r)
 
-  @spec map(t(x), (x -> y)) :: t(y) when x: var, y: var
-  def map(%Right{v: x}, f), do: %Right{v: f.(x)}
+  @spec map(t(a), (a -> b)) :: t(b) when a: var, b: var
+  def map(%Right{v: a}, f), do: %Right{v: f.(a)}
   def map(either, _), do: either
 
-  @spec as(t(any), x) :: t(x) when x: var
-  defdelegate as(t, x), to: Cat.Functor.Default
+  @spec as(t(any), a) :: t(a) when a: var
+  defdelegate as(t, a), to: Cat.Functor.Default
 end
 
 defimpl Cat.Applicative, for: [Either, Left, Right] do
   @type t(r) :: Either.t(any, r)
 
-  @spec pure(t(any), x) :: t(x) when x: var
-  def pure(_, x), do: %Right{v: x}
+  @spec pure(t(any), a) :: t(a) when a: var
+  def pure(_, a), do: %Right{v: a}
 
-  @spec ap(t((x -> y)), t(x)) :: t(y) when x: var, y: var
-  def ap(%Right{v: f}, %Right{v: x}), do: %Right{v: f.(x)}
+  @spec ap(t((a -> b)), t(a)) :: t(b) when a: var, b: var
+  def ap(%Right{v: f}, %Right{v: a}), do: %Right{v: f.(a)}
   def ap(%Right{}, l=%Left{}), do: l
   def ap(l, _), do: l
 
-  @spec product(t(x), t(y)) :: t({x, y}) when x: var, y: var
-  defdelegate product(tx, ty), to: Cat.Applicative.Default
+  @spec product(t(a), t(b)) :: t({a, b}) when a: var, b: var
+  defdelegate product(ta, tb), to: Cat.Applicative.Default
 end
 
 defimpl Cat.Monad, for: [Either, Left, Right] do
   @type t(r) :: Either.t(any, r)
 
-  @spec flat_map(t(x), (x -> t(y))) :: t(y) when x: var, y: var
-  def flat_map(%Right{v: x}, f), do: f.(x)
+  @spec flat_map(t(a), (a -> t(b))) :: t(b) when a: var, b: var
+  def flat_map(%Right{v: a}, f), do: f.(a)
   def flat_map(l=%Left{}, _), do: l
+
+  @spec flat_tap(t(a), (a -> t(no_return))) :: t(a) when a: var
+  defdelegate flat_tap(ta, f), to: Cat.Monad.Default
 end
 
 defimpl Cat.MonadError, for: [Either, Left, Right] do
@@ -102,14 +105,17 @@ defimpl Cat.MonadError, for: [Either, Left, Right] do
   @spec raise(t(any), any) :: t(none)
   def raise(_, error), do: %Left{v: error}
 
-  @spec recover(t(x), (any -> t(x))) :: t(x) when x: var
+  @spec recover(t(a), (any -> t(a))) :: t(a) when a: var
   def recover(%Left{v: error}, f), do: f.(error)
   def recover(right, _), do: right
 
-  @spec lift_ok_or_error(t(any), Cat.MonadError.ok_or_error(x)) :: t(x) when x: var
-  def lift_ok_or_error(_, {:ok, x}), do: %Right{v: x}
+  @spec on_error(t(a), (error -> t(no_return))) :: t(a) when a: var, error: any
+  defdelegate on_error(ta, f), to: Cat.MonadError.Default
+
+  @spec lift_ok_or_error(t(any), Cat.MonadError.ok_or_error(a)) :: t(a) when a: var
+  def lift_ok_or_error(_, {:ok, a}), do: %Right{v: a}
   def lift_ok_or_error(_, {:error, e}), do: %Left{v: e}
 
-  @spec attempt(t(x)) :: t(Cat.MonadError.ok_or_error(x)) when x: var
-  defdelegate attempt(tx), to: Cat.MonadError.Default
+  @spec attempt(t(a)) :: t(Cat.MonadError.ok_or_error(a)) when a: var
+  defdelegate attempt(ta), to: Cat.MonadError.Default
 end

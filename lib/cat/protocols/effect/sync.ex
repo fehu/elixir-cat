@@ -6,19 +6,25 @@ defprotocol Cat.Effect.Sync do
     * `defer((-> t(a))) :: t(a)`
     * `delay(t(any), (-> a)) :: t(a)`
 
-  **It must also be `Bracket`, `MonadError, `Monad`, `Applicative` and `Functor`.**
+  **It must also be `MonadCancel`, `MonadError, `Monad`, `Applicative` and `Functor`.**
   """
 
   @type t(_x) :: term
 
-  @spec defer((-> t(a))) :: t(a) when a: var
-  def defer(taf)
+  @spec defer(t(any), (-> t(a))) :: t(a) when a: var
+  def defer(example, taf)
 
   @spec delay(t(any), (-> a)) :: t(a) when a: var
   def delay(example, xf)
 end
 
+alias Cat.Monad
 alias Cat.Effect.Sync
+
+defmodule Cat.Effect.Sync.Default do
+  @spec defer(Sync.t(any), (-> Sync.t(a))) :: Sync.t(a) when a: var
+  def defer(example, taf), do: Monad.flatten Sync.delay(example, taf)
+end
 
 defmodule Cat.Effect.Sync.Arrow do
   @spec delay(Sync.t(any)) :: ((-> a) -> Sync.t(a)) when a: var

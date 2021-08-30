@@ -18,9 +18,9 @@ defmodule Cat.Fun do
     quote do: fn _ -> unquote(x) end
   end
 
-  defmacro tupled(f) when is_function(f, 2) do
-    [x, y] = Macro.generate_arguments(2, __CALLER__)
-    quote do: fn {unquote(x), unquote(y)} -> f(unquote(x), unquote(y)) end
+  defmacro tupled(f) do
+    [x, y] = Macro.generate_arguments(2, __MODULE__)
+    quote do: fn {unquote(x), unquote(y)} -> unquote(f).(unquote(x), unquote(y)) end
   end
 
 end

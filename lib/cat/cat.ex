@@ -165,8 +165,8 @@ defmodule Cat do
 
     # Sync
 
-    @spec defer((-> Sync.t(a))) :: Sync.t(a) when a: var
-    defdelegate defer(taf), to: Sync
+    @spec defer(Sync.t(any), (-> Sync.t(a))) :: Sync.t(a) when a: var
+    defdelegate defer(example, taf), to: Sync
 
     @spec delay(Sync.t(any), (-> a)) :: Sync.t(a) when a: var
     defdelegate delay(example, xf), to: Sync

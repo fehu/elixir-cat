@@ -80,7 +80,7 @@ defmodule Cat.Effect.MonadCancel.Default do
     MonadCancel.uncancelable fn poll ->
       finalized = MonadCancel.on_cancel(poll.(ta), fin.(:canceled))
       handled = MonadError.on_error finalized, fn error ->
-        MonadError.recover(fin.({:error, error}), Fun.const_inline(Fun.no_return))
+        MonadError.recover(fin.({:error, error}), Fun.const_inline(fn _ -> nil end))
       end
       Monad.flat_tap handled, fn a ->
         fin.({:ok, Applicative.pure(ta, a)})

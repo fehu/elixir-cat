@@ -63,6 +63,9 @@ end
 defmodule Cat.Applicative.Default do
   @moduledoc false
 
+  alias Cat.Fun
+  require Fun
+
   @spec product(Applicative.t(a), Applicative.t(b)) :: Applicative.t({a, b}) when a: var, b: var
   def product(ta, tb) do
     fs = Functor.map(ta, fn a -> (fn b -> {a, b} end) end)

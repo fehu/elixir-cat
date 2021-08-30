@@ -78,6 +78,15 @@ defmodule Cat.Maybe do
 
     @spec product(t(a), t(b)) :: t({a, b}) when a: var, b: var
     defdelegate product(ta, tb), to: Cat.Applicative.Default
+
+    @spec product_l(t(a), t(any)) :: t(a) when a: var
+    defdelegate product_l(ta, tb), to: Applicative.Default
+
+    @spec product_r(t(any), t(b)) :: t(b) when b: var
+    defdelegate product_r(ta, tb), to: Applicative.Default
+
+    @spec map2(t(a), t(b), (a, b -> c)) :: t(c) when a: var, b: var, c: var
+    defdelegate map2(ta, tb, f), to: Applicative.Default
   end
 
   defimpl Cat.Monad, for: [Maybe, Just, Nothing] do

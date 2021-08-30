@@ -100,6 +100,9 @@ defimpl Applicative, for: [Done, Failure, Success] do
   def ap(a, %Done{}), do: a
 
   defdelegate product(ta, tb), to: Cat.Applicative.Default
+  defdelegate product_l(ta, tb), to: Applicative.Default
+  defdelegate product_r(ta, tb), to: Applicative.Default
+  defdelegate map2(ta, tb, f), to: Applicative.Default
 end
 
 defimpl Monad, for: [Done, Failure, Success] do

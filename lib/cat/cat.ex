@@ -35,6 +35,15 @@ defmodule Cat do
   @spec product(Applicative.t(a), Applicative.t(b)) :: Applicative.t({a, b}) when a: var, b: var
   defdelegate product(ta, tb), to: Applicative
 
+  @spec product_l(Applicative.t(a), Applicative.t(any)) :: Applicative.t(a) when a: var
+  defdelegate product_l(ta, tb), to: Applicative
+
+  @spec product_r(Applicative.t(any), Applicative.t(b)) :: Applicative.t(b) when b: var
+  defdelegate product_r(ta, tb), to: Applicative
+
+  @spec map2(Applicative.t(a), Applicative.t(b), (a, b -> c)) :: Applicative.t(c) when a: var, b: var, c: var
+  defdelegate map2(ta, tb, f), to: Applicative
+
   # Monad
 
   @spec flat_map(Monad.t(a), (a -> Monad.t(b))) :: Monad.t(b) when a: var, b: var
@@ -92,6 +101,15 @@ defmodule Cat do
 
     @spec ap(Applicative.t((a -> b))) :: (Applicative.t(a) -> Applicative.t(b))when a: var, b: var
     defdelegate ap(tf), to: Applicative.Arrow
+
+    @spec product_l(Applicative.t(any)) :: (Applicative.t(a) -> Applicative.t(a)) when a: var
+    defdelegate product_l(tb), to: Applicative.Arrow
+
+    @spec product_r(Applicative.t(any)) :: (Applicative.t(b) -> Applicative.t(b)) when b: var
+    defdelegate product_r(ta), to: Applicative.Arrow
+
+    @spec map2((a, b -> c)) :: (Applicative.t(a), Applicative.t(b) -> Applicative.t(c)) when a: var, b: var, c: var
+    defdelegate map2(f), to: Applicative.Arrow
 
     # Monad
 

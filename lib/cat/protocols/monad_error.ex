@@ -33,7 +33,7 @@ defprotocol Cat.MonadError do
   def attempt(ta)
 end
 
-alias Cat.{Functor, MonadError}
+alias Cat.{Applicative, Functor, MonadError}
 
 defmodule Cat.MonadError.Default do
   @spec on_error(MonadError.t(a), (error -> MonadError.t(no_return))) :: MonadError.t(a) when a: var, error: any
@@ -41,6 +41,10 @@ defmodule Cat.MonadError.Default do
     MonadError.recover ta, fn error ->
       Functor.as f.(error), MonadError.raise(ta, error)
     end
+
+  @spec lift_ok_or_error(MonadError.t(any), MonadError.ok_or_error(a)) :: MonadError.t(a) when a: var
+  def lift_ok_or_error(example, {:ok, a}), do: Applicative.pure(example, a)
+  def lift_ok_or_error(example, {:error, err}), do: MonadError.raise(example, err)
 
   @spec attempt(MonadError.t(a)) :: MonadError.t(MonadError.ok_or_error(a)) when a: var
   def attempt(ta), do:

@@ -49,6 +49,12 @@ defmodule Cat do
   @spec flat_map(Monad.t(a), (a -> Monad.t(b))) :: Monad.t(b) when a: var, b: var
   defdelegate flat_map(ta, f), to: Monad
 
+  @spec flat_tap(Monad.t(a), (a -> Monad.t(no_return))) :: Monad.t(a) when a: var
+  defdelegate flat_tap(ta, f), to: Monad
+
+  @spec flatten(Monad.t(Monad.t(a))) :: Monad.t(a) when a: var
+  defdelegate flatten(tta), to: Monad
+
   # MonadError
 
   @spec raise(MonadError.t(any), error) :: MonadError.t(none) when error: any

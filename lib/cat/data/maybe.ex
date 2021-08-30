@@ -98,6 +98,9 @@ defmodule Cat.Maybe do
 
     @spec flat_tap(Maybe.t(a), (a -> Maybe.t(no_return))) :: Maybe.t(a) when a: var
     defdelegate flat_tap(ta, f), to: Cat.Monad.Default
+
+    @spec flatten(Maybe.t(Maybe.t(a))) :: Maybe.t(a) when a: var
+    defdelegate flatten(tta), to: Cat.Monad.Default
   end
 
 end

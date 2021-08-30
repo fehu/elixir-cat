@@ -113,6 +113,9 @@ defimpl Monad, for: [Done, Failure, Success] do
 
   @spec flat_tap(Result.t(a), (a -> Result.t(no_return))) :: Result.t(a) when a: var
   defdelegate flat_tap(ta, f), to: Cat.Monad.Default
+
+  @spec flatten(Result.t(Result.t(a))) :: Result.t(a) when a: var
+  defdelegate flatten(tta), to: Cat.Monad.Default
 end
 
 defimpl MonadError, for: [Done, Failure, Success] do

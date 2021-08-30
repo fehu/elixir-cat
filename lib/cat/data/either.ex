@@ -106,6 +106,9 @@ defimpl Cat.Monad, for: [Either, Left, Right] do
 
   @spec flat_tap(t(a), (a -> t(no_return))) :: t(a) when a: var
   defdelegate flat_tap(ta, f), to: Cat.Monad.Default
+
+  @spec flatten(t(t(a))) :: t(a) when a: var
+  defdelegate flatten(tta), to: Cat.Monad.Default
 end
 
 defimpl Cat.MonadError, for: [Either, Left, Right] do

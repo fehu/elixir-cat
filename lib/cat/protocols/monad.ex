@@ -1,6 +1,9 @@
 defprotocol Cat.Monad do
   @moduledoc """
-  Monad defines `flat_map(t(a), (a -> t(b))) :: t(b)`.
+  Monad defines
+    * `flat_map(t(a), (a -> t(b))) :: t(b)`
+    * `flat_tap(t(a), (a -> t(no_return))) :: t(a)`
+    * `flatten(t(t(a))) :: t(a)`
 
   **It must also be `Applicative` and `Functor`.**
 
@@ -15,6 +18,9 @@ defprotocol Cat.Monad do
 
   @spec flat_tap(t(a), (a -> t(no_return))) :: t(a) when a: var
   def flat_tap(ta, f)
+
+  @spec flatten(t(t(a))) :: t(a) when a: var
+  def flatten(tta)
 end
 
 alias Cat.{Functor, Monad}
@@ -37,6 +43,9 @@ defmodule Cat.Monad.Default do
       Functor.map f.(a), Fun.const_inline(a)
     end
   end
+
+  @spec flatten(Monad.t(Monad.t(a))) :: Monad.t(a) when a: var
+  def flatten(tta), do: Monad.flat_map(tta, &Function.identity/1)
 end
 
 defimpl Monad, for: List do
@@ -52,4 +61,7 @@ defimpl Monad, for: List do
 
   @spec flat_tap([a], (a -> [no_return])) :: [a] when a: var
   defdelegate flat_tap(ta, f), to: Cat.Monad.Default
+
+  @spec flatten([[a]]) :: [a] when a: var
+  defdelegate flatten(tta), to: Cat.Monad.Default
 end

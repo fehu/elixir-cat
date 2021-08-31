@@ -1,6 +1,8 @@
 defmodule Cat.Result do
   @moduledoc false
 
+  alias Cat.Macros.Common, as: Macros
+
   defmodule Done do
     defstruct []
     @type t() :: %__MODULE__{}
@@ -72,6 +74,23 @@ defmodule Cat.Result do
 
   @spec failure_reasons!(t() | t(any)) :: Failure.reasons(any)
   def failure_reasons!(%Failure{reasons: reasons}), do: reasons
+
+  defmacro safe(x) do
+    success = quote do: &Cat.Result.success/1
+    failure = quote do: &Cat.Result.fail/1
+    Macros.safe(success, failure, x)
+  end
+
+  @spec safe_((-> x)) :: t(x) when x: var
+  def safe_(fx), do: safe(fx.())
+
+  defmacro flat_safe(x) do
+    failure = quote do: &Cat.Result.fail/1
+    Macros.flat_safe(failure, x)
+  end
+
+  @spec flat_safe_((-> t(x))) :: t(x) when x: var
+  def flat_safe_(fx), do: flat_safe(fx.())
 end
 
 alias Cat.{Applicative, Functor, Monad, MonadError, Result}

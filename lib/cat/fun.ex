@@ -23,4 +23,11 @@ defmodule Cat.Fun do
     quote do: fn {unquote(x), unquote(y)} -> unquote(f).(unquote(x), unquote(y)) end
   end
 
+  # `f . g` === `fn x -> f(g(x))`
+  defmacro compose(f, g) do
+    [arg] = Macro.generate_arguments(1, __MODULE__)
+    quote do
+      fn unquote(arg) -> unquote(f).(unquote(g).(unquote(arg))) end
+    end
+  end
 end

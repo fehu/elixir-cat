@@ -29,6 +29,6 @@ defmodule FirstApp.MixProject do
     ]
   end
 
-  defp elixirc_paths(:test), do: ["lib", "test/test"]
+  defp elixirc_paths(:test), do: ["lib", "test/test", "test/cat/laws"]
   defp elixirc_paths(_), do: ["lib"]
 end

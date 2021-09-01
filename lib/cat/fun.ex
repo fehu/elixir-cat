@@ -19,8 +19,19 @@ defmodule Cat.Fun do
   end
 
   defmacro tupled(f) do
-    [x, y] = Macro.generate_arguments(2, __MODULE__)
-    quote do: fn {unquote(x), unquote(y)} -> unquote(f).(unquote(x), unquote(y)) end
+    [a1, a2, a3, a4, a5] = Macro.generate_arguments(5, __MODULE__)
+    quote do: fn
+      {unquote(a1), unquote(a2), unquote(a3), unquote(a4), unquote(a5)} ->
+        unquote(f).(unquote(a1), unquote(a2), unquote(a3), unquote(a4), unquote(a5))
+      {unquote(a1), unquote(a2), unquote(a3), unquote(a4)} ->
+        unquote(f).(unquote(a1), unquote(a2), unquote(a3), unquote(a4))
+      {unquote(a1), unquote(a2), unquote(a3)} ->
+        unquote(f).(unquote(a1), unquote(a2), unquote(a3))
+      {unquote(a1), unquote(a2)} ->
+        unquote(f).(unquote(a1), unquote(a2))
+      unquote(a1) ->
+        unquote(f).(unquote(a1))
+    end
   end
 
   # `f . g` === `fn x -> f(g(x))`

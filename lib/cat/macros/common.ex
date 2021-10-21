@@ -20,8 +20,9 @@ defmodule Cat.Macros.Common do
       try do
         unquote(expr)
       catch
-        {:exit, unquote(err)} -> unquote(failure).(unquote(err))
-        unquote(err)          -> unquote(failure).(unquote(err))
+        :error, unquote(err) -> unquote(failure).(unquote(err))
+        :exit, unquote(err)  -> unquote(failure).(unquote(err))
+        unquote(err)         -> unquote(failure).(unquote(err))
       end
     end
   end
